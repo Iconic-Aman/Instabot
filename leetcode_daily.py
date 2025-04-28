@@ -107,35 +107,29 @@ class LeetCodeDaily:
             # Load fonts with fallbacks
             fonts_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "fonts")
             
-            # Title font - larger and bolder
+            # Title font
             try:
-                title_font = ImageFont.truetype(os.path.join(fonts_dir, "MontserratAlternates-Bold.ttf"), 75)
+                title_font = ImageFont.truetype(os.path.join(fonts_dir, "MontserratAlternates-Bold.ttf"), 60)
             except:
                 try:
-                    title_font = ImageFont.truetype(os.path.join(fonts_dir, "BebasNeue-Regular.ttf"), 75)
+                    title_font = ImageFont.truetype(os.path.join(fonts_dir, "BebasNeue-Regular.ttf"), 60)
                 except:
                     print("Could not load preferred fonts, using system font")
-                    title_font = ImageFont.truetype("arial.ttf", 75)
-            
-            # Date font - same as title but smaller
-            try:
-                date_font = ImageFont.truetype(os.path.join(fonts_dir, "MontserratAlternates-Bold.ttf"), 55)
-            except:
-                date_font = title_font
+                    title_font = ImageFont.truetype("arial.ttf", 60)
             
             # Regular text font
             try:
-                text_font = ImageFont.truetype(os.path.join(fonts_dir, "Poppins-Regular.ttf"), 50)
+                text_font = ImageFont.truetype(os.path.join(fonts_dir, "Poppins-Regular.ttf"), 45)
             except:
                 try:
-                    text_font = ImageFont.truetype(os.path.join(fonts_dir, "Lato-Regular.ttf"), 50)
+                    text_font = ImageFont.truetype(os.path.join(fonts_dir, "Lato-Regular.ttf"), 45)
                 except:
                     print("Could not load preferred fonts, using system font")
-                    text_font = ImageFont.truetype("arial.ttf", 50)
+                    text_font = ImageFont.truetype("arial.ttf", 45)
             
             # Load emoji font (Segoe UI Emoji on Windows)
             try:
-                emoji_font = ImageFont.truetype("C:\\Windows\\Fonts\\seguiemj.ttf", 75)
+                emoji_font = ImageFont.truetype("C:\\Windows\\Fonts\\seguiemj.ttf", 60)
             except:
                 print("Could not load emoji font, using system font")
                 emoji_font = title_font
@@ -146,7 +140,7 @@ class LeetCodeDaily:
             title_bbox = draw.textbbox((0, 0), title, font=title_font)
             title_width = title_bbox[2] - title_bbox[0]
             title_y = 180  # Moved down from 100
-            draw.text(((size - title_width) // 2, title_y), title, font=title_font, fill=(255, 255, 255))
+            draw.text(((size - title_width) // 2 - 30, title_y), title, font=title_font, fill=(255, 255, 255))
             
             # Draw star emoji with emoji font
             star = "⭐"
@@ -159,7 +153,7 @@ class LeetCodeDaily:
             vertical_offset = (title_height - star_height) // 2
             
             # Position star after the title with proper alignment
-            star_x = (size - title_width) // 2 + title_width + 15
+            star_x = (size - title_width) // 2 + title_width - 15  # Adjusted for the title shift
             star_y = title_y + vertical_offset + 13
             
             # Draw star in yellow color
@@ -168,25 +162,58 @@ class LeetCodeDaily:
             print("Drawing date...")
             # Draw date in DD/MM/YYYY format - increased spacing
             date = datetime.now().strftime("%d/%m/%Y")
-            date_bbox = draw.textbbox((0, 0), date, font=date_font)
+            date_bbox = draw.textbbox((0, 0), date, font=title_font)  # Changed to title_font
             date_width = date_bbox[2] - date_bbox[0]
-            draw.text(((size - date_width) // 2, title_y + 120), date, font=date_font, fill=(255, 255, 255))
+            draw.text(((size - date_width) // 2 - 30, title_y + 120), date, font=title_font, fill=(255, 255, 255))  # Changed to title_font and shifted left
             
             print("Drawing problem info...")
             # Draw problem number and name - increased spacing
             problem_text = f"{problem_info['number']}. {problem_info['title']}"
-            problem_bbox = draw.textbbox((0, 0), problem_text, font=text_font)
-            problem_width = problem_bbox[2] - problem_bbox[0]
-            draw.text(((size - problem_width) // 2, title_y + 280), problem_text, font=text_font, fill=(255, 255, 255))
+            
+            # Split long titles into two lines
+            max_width = size - 100  # Leave some margin on both sides
+            words = problem_text.split()
+            line1 = []
+            line2 = []
+            current_line = line1
+            
+            for word in words:
+                test_line = ' '.join(current_line + [word])
+                test_bbox = draw.textbbox((0, 0), test_line, font=text_font)
+                test_width = test_bbox[2] - test_bbox[0]
+                
+                if test_width <= max_width:
+                    current_line.append(word)
+                else:
+                    if current_line is line1:
+                        current_line = line2
+                        current_line.append(word)
+                    else:
+                        break
+            
+            # Draw the two lines
+            line1_text = ' '.join(line1)
+            line2_text = ' '.join(line2)
+            
+            # Draw first line
+            line1_bbox = draw.textbbox((0, 0), line1_text, font=text_font)
+            line1_width = line1_bbox[2] - line1_bbox[0]
+            draw.text(((size - line1_width) // 2, title_y + 280), line1_text, font=text_font, fill=(255, 255, 255))
+            
+            # Draw second line if it exists
+            if line2_text:
+                line2_bbox = draw.textbbox((0, 0), line2_text, font=text_font)
+                line2_width = line2_bbox[2] - line2_bbox[0]
+                draw.text(((size - line2_width) // 2, title_y + 340), line2_text, font=text_font, fill=(255, 255, 255))
             
             # Draw difficulty - increased spacing
-            difficulty_text = f"Difficulty : {problem_info['difficulty']}"
+            difficulty_text = f"\nDifficulty : {problem_info['difficulty']}"
             diff_bbox = draw.textbbox((0, 0), difficulty_text, font=text_font)
             diff_width = diff_bbox[2] - diff_bbox[0]
             draw.text(((size - diff_width) // 2, title_y + 400), difficulty_text, font=text_font, fill=(255, 255, 255))
             
             # Draw tags - increased spacing
-            tags_text = f"Tags : {', '.join(problem_info['tags'])}"
+            tags_text = f"\nTags : {', '.join(problem_info['tags'])}"
             tags_bbox = draw.textbbox((0, 0), tags_text, font=text_font)
             tags_width = tags_bbox[2] - tags_bbox[0]
             draw.text(((size - tags_width) // 2, title_y + 520), tags_text, font=text_font, fill=(255, 255, 255))
