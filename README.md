@@ -1,0 +1,2 @@
+- Hello guys, This is the project that was very excited for me.
+- Because, i have created an instagram post automation system just using cursor AI. 
